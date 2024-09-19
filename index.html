@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>To-Do List</title>
+    <style>
+        :root {
+            --primary-color: #34db42;
+            --secondary-color: #2ecc71;
+            --background-color: #a9e89d;
+            --text-color: #161719;
+            --delete-color: #ef2009;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--background-color);
+            color: var(--text-color);
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+        
+        .container {
+            background-color: white;
+            padding: 2rem;
+            border-radius: 10px;
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+            width: 100%;
+            max-width: 500px;
+        }
+        
+        h1 {
+            text-align: center;
+            color: var(--primary-color);
+            margin-bottom: 1.5rem;
+        }
+        
+        #new-todo {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 1.5rem;
+        }
+        
+        #new-todo input {
+            flex-grow: 1;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 16px;
+        }
+        
+        #new-todo button {
+            padding: 10px 20px;
+            background: var(--secondary-color);
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: background 0.3s ease;
+        }
+        
+        #new-todo button:hover {
+            background: #27ae60;
+        }
+        
+        #todo-list {
+            list-style: none;
+            padding: 0;
+        }
+        
+        #todo-list li {
+            background: #f9f9f9;
+            margin: 10px 0;
+            padding: 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-radius: 5px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            transition: transform 0.2s ease;
+        }
+        
+        #todo-list li:hover {
+            transform: translateY(-2px);
+        }
+        
+        #todo-list .todo-content {
+            flex-grow: 1;
+        }
+        
+        #todo-list .assigned-to {
+            font-size: 0.8em;
+            color: #7f8c8d;
+            margin-top: 5px;
+        }
+        
+        #todo-list button {
+            background: var(--delete-color);
+            color: white;
+            border: none;
+            padding: 5px 10px;
+            border-radius: 3px;
+            cursor: pointer;
+            transition: background 0.3s ease;
+        }
+        
+        #todo-list button:hover {
+            background: #c0392b;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>To-Do List</h1>
+        <div id="new-todo">
+            <input type="text" id="todo-input" placeholder="Add a new task">
+            <input type="text" id="assign-to" placeholder="Assign to">
+            <button id="add-todo">Add</button>
+        </div>
+        <ul id="todo-list"></ul>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const todoInput = document.getElementById('todo-input');
+            const assignTo = document.getElementById('assign-to');
+            const addTodoButton = document.getElementById('add-todo');
+            const todoList = document.getElementById('todo-list');
+
+            const loadTodos = () => {
+                const todos = JSON.parse(localStorage.getItem('todos')) || [];
+                todos.forEach(todo => {
+                    addTodoToList(todo.text, todo.assignedTo);
+                });
+            };
+
+            const addTodo = () => {
+                const todoText = todoInput.value.trim();
+                const assignedTo = assignTo.value.trim();
+                if (todoText === '') return;
+
+                addTodoToList(todoText, assignedTo);
+                saveTodoToLocalStorage(todoText, assignedTo);
+                todoInput.value = '';
+                assignTo.value = '';
+            };
+
+            const addTodoToList = (todo, assigned) => {
+                const li = document.createElement('li');
+                const todoContent = document.createElement('div');
+                todoContent.className = 'todo-content';
+                todoContent.textContent = todo;
+                
+                if (assigned) {
+                    const assignedText = document.createElement('div');
+                    assignedText.className = 'assigned-to';
+                    assignedText.textContent = `Assigned to: ${assigned}`;
+                    todoContent.appendChild(assignedText);
+                }
+
+                const button = document.createElement('button');
+                button.textContent = 'Remove';
+                button.onclick = () => {
+                    removeTodoFromLocalStorage(todo);
+                    li.remove();
+                };
+
+                li.appendChild(todoContent);
+                li.appendChild(button);
+                todoList.appendChild(li);
+            };
+
+            const saveTodoToLocalStorage = (todo, assigned) => {
+                const todos = JSON.parse(localStorage.getItem('todos')) || [];
+                todos.push({ text: todo, assignedTo: assigned });
+                localStorage.setItem('todos', JSON.stringify(todos));
+            };
+
+            const removeTodoFromLocalStorage = (todo) => {
+                let todos = JSON.parse(localStorage.getItem('todos')) || [];
+                todos = todos.filter(t => t.text !== todo);
+                localStorage.setItem('todos', JSON.stringify(todos));
+            };
+
+            addTodoButton.addEventListener('click', addTodo);
+            todoInput.addEventListener('keypress', (event) => {
+                if (event.key === 'Enter') {
+                    addTodo();
+                }
+            });
+            assignTo.addEventListener('keypress', (event) => {
+                if (event.key === 'Enter') {
+                    addTodo();
+                }
+            });
+
+            loadTodos();
+        });
+    </script>
+</body>
+</html>
